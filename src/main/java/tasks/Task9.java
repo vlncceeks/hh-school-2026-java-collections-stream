@@ -1,14 +1,8 @@
 package tasks;
 
 import common.Person;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -26,69 +20,65 @@ public class Task9 {
   // Костыль, эластик всегда выдает в топе "фальшивую персону".
   // Конвертируем начиная со второй
   public List<String> getNames(List<Person> persons) {
-    if (persons.size() == 0) {
-      return Collections.emptyList();
-    }
-    persons.remove(0);
-    return persons.stream().map(Person::firstName).collect(Collectors.toList());
+    if (persons == null) return Collections.emptyList();
+    // Удаление из списка нельзя использовать, потому что если менять исходные данные,
+    // то при повторном обращении к методу будут удаляться уже не "фальшивые" персоны
+
+    // Если удаление убирать, то и проверка persons.size() == 0 не нужна,
+    // stream api в плохом случае вернет пустой список
+
+    // Необходимо добавить проверку на null, потому что тогда при создании stream из null выпадет исключение
+
+    return persons.stream().skip(1).map(Person::firstName).collect(Collectors.toList());
   }
 
   // Зачем-то нужны различные имена этих же персон (без учета фальшивой разумеется)
   public Set<String> getDifferentNames(List<Person> persons) {
-    return getNames(persons).stream().distinct().collect(Collectors.toSet());
+    // Было две итерации по коллекции: в getNames() и getNames().stream, сейчас одна, поэтому производительность выше
+    return new HashSet<>(getNames(persons));
   }
 
   // Тут фронтовая логика, делаем за них работу - склеиваем ФИО
   public String convertPersonToString(Person person) {
-    String result = "";
-    if (person.secondName() != null) {
-      result += person.secondName();
-    }
-
-    if (person.firstName() != null) {
-      result += " " + person.firstName();
-    }
-
-    if (person.secondName() != null) {
-      result += " " + person.secondName();
-    }
-    return result;
+    // Меньше кода
+    return Stream.of(person.secondName(), person.firstName(), person.middleName())
+            .filter(Objects::nonNull).collect(Collectors.joining(" "));
   }
 
   // словарь id персоны -> ее имя
   public Map<Integer, String> getPersonNames(Collection<Person> persons) {
-    Map<Integer, String> map = new HashMap<>(1);
-    for (Person person : persons) {
-      if (!map.containsKey(person.id())) {
-        map.put(person.id(), convertPersonToString(person));
-      }
-    }
-    return map;
+    // Меньше кода
+    // Сделала filter(person -> idsCheck.add(person.id())) для замены проверки !map.containsKey(person.id()),
+    // чтобы одинаковых id не было в мапе
+
+    Set<Integer> idsCheck = new HashSet<>();
+    return persons.stream()
+            .filter(person -> idsCheck.add(person.id()))
+            .collect(Collectors.toMap(person -> person.id(), person -> convertPersonToString(person)));
   }
 
   // есть ли совпадающие в двух коллекциях персоны?
   public boolean hasSamePersons(Collection<Person> persons1, Collection<Person> persons2) {
-    boolean has = false;
-    for (Person person1 : persons1) {
-      for (Person person2 : persons2) {
-        if (person1.equals(person2)) {
-          has = true;
-        }
-      }
-    }
-    return has;
+    // Через disjoint проверяю есть ли общие элементы. Если нет общих элементов, то возвращается true, поэтому использую !
+    return !Collections.disjoint(persons1, persons2);
   }
 
   // Посчитать число четных чисел
   public long countEven(Stream<Integer> numbers) {
-    count = 0;
-    numbers.filter(num -> num % 2 == 0).forEach(num -> count++);
-    return count;
+    // Нет смысла создавать переменную и увеличивать ее
+    return numbers.filter(num -> num % 2 == 0).count();
   }
 
   // Загадка - объясните почему assert тут всегда верен
   // Пояснение в чем соль - мы перетасовали числа, обернули в HashSet, а toString() у него вернул их в сортированном порядке
   void listVsSet() {
+    // Лист integers создается отсортированным, поэтому и snapshot отсортированный
+    // HashSet реализован через HashMap
+    // в HashMap количество корзин определяется степенью двойки, ближайшее число покрывающее 10000 элементов - это 2^14 = 16384. Поэтому в данном примере будет 16384 корзины
+    // Индекс корзины будет определяться как HashCode() % capacity, у Integer HashCode() равен самому числу, а capacity равно количеству корзин, то есть 16384
+    // Получается, что элементы от 1 до 10000 будут в корзинах с индексами от 1 до 10000 соответственно, коллизий не будет
+    // toString() у HashSet проходит по корзинам в порядке их индексов (от 1 до 16384), значит числа будут отображаться в порядке от 1 до 10000
+    // ArrayList всегда хранит порядок и toString() выводит именно в этом порядке, а значит числа также будут отображаться в порядке от 1 до 10000
     List<Integer> integers = IntStream.rangeClosed(1, 10000).boxed().collect(Collectors.toList());
     List<Integer> snapshot = new ArrayList<>(integers);
     Collections.shuffle(integers);
