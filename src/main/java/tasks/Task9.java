@@ -20,14 +20,11 @@ public class Task9 {
   // Костыль, эластик всегда выдает в топе "фальшивую персону".
   // Конвертируем начиная со второй
   public List<String> getNames(List<Person> persons) {
-    if (persons == null) return Collections.emptyList();
     // Удаление из списка нельзя использовать, потому что если менять исходные данные,
     // то при повторном обращении к методу будут удаляться уже не "фальшивые" персоны
 
     // Если удаление убирать, то и проверка persons.size() == 0 не нужна,
     // stream api в плохом случае вернет пустой список
-
-    // Необходимо добавить проверку на null, потому что тогда при создании stream из null выпадет исключение
 
     return persons.stream().skip(1).map(Person::firstName).collect(Collectors.toList());
   }
@@ -51,15 +48,14 @@ public class Task9 {
     // Сделала filter(person -> idsCheck.add(person.id())) для замены проверки !map.containsKey(person.id()),
     // чтобы одинаковых id не было в мапе
 
-    Set<Integer> idsCheck = new HashSet<>();
     return persons.stream()
-            .filter(person -> idsCheck.add(person.id()))
-            .collect(Collectors.toMap(person -> person.id(), person -> convertPersonToString(person)));
+            .collect(Collectors.toMap(person -> person.id(), person -> convertPersonToString(person), (a, b) -> a));
   }
 
   // есть ли совпадающие в двух коллекциях персоны?
   public boolean hasSamePersons(Collection<Person> persons1, Collection<Person> persons2) {
     // Через disjoint проверяю есть ли общие элементы. Если нет общих элементов, то возвращается true, поэтому использую !
+    // Меньше кода
     return !Collections.disjoint(persons1, persons2);
   }
 

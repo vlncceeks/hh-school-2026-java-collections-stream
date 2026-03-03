@@ -27,13 +27,13 @@ public class Task1 {
     // Сначала создаю map для того, чтобы за O(1) по id брать Person
     // Потом прохожу по списку personIds и заменяю id на соответствующего Person, собираю в список
 
-    Map<Integer, Person> map = persons.stream().collect(Collectors.toMap(
-            person -> person.id(),
+    Map<Integer, Person> personMap = persons.stream().collect(Collectors.toMap(
+            Person::id,
             person -> person
     ));
 
     return personIds.stream()
-            .map(id -> map.get(id))
+            .map(personMap::get)
             .collect(Collectors.toList());
   }
 

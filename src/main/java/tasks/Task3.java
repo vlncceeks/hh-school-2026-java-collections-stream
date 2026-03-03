@@ -17,8 +17,8 @@ public class Task3 {
                     Comparator.nullsLast(Comparator.naturalOrder()))
             .thenComparing(Person::firstName,
                     Comparator.nullsLast(Comparator.naturalOrder()))
-            .thenComparing(Person::createdAt,
-                    Comparator.nullsLast(Comparator.naturalOrder()));
+            .thenComparing(Person::createdAt);
+    // createdAt не может быть null
 
     return persons.stream().sorted(comparator).toList();
   }

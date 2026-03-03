@@ -20,9 +20,8 @@ public class Task2 {
     // с помощью stream сделала Stream<Collection<Person>>,
     // потом с помощью flatMap сделала Stream<Person>
 
-    Comparator<Person> comparator = (p1, p2) -> {
-      return p1.createdAt().compareTo(p2.createdAt());
-    };
+    Comparator<Person> comparator = Comparator
+            .comparing(Person::createdAt);
     return List.of(persons1, persons2).stream()
             .flatMap(list -> list.stream())
             .sorted(comparator)
