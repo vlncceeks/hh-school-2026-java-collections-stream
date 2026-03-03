@@ -1,17 +1,25 @@
 package tasks;
 
 import common.Person;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+
+import java.util.*;
 
 /*
 Задача 3
-Отсортировать коллекцию сначала по фамилии, по имени (при равной фамилии), и по дате создания (при равных фамилии и имени)
+Отсортировать коллекцию сначала по фамилии, по имени (при равной фамилии),
+и по дате создания (при равных фамилии и имени)
  */
 public class Task3 {
 
   public static List<Person> sort(Collection<Person> persons) {
-    return new ArrayList<>(persons);
+    Comparator<Person> comparator = Comparator
+            .comparing(Person::secondName,
+                    Comparator.nullsLast(Comparator.naturalOrder()))
+            .thenComparing(Person::firstName,
+                    Comparator.nullsLast(Comparator.naturalOrder()))
+            .thenComparing(Person::createdAt);
+    // createdAt не может быть null
+
+    return persons.stream().sorted(comparator).toList();
   }
 }
